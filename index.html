@@ -1,23 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>AR Heart Model</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    body { margin: 0; background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; }
-    model-viewer { width: 100%; height: 100vh; }
-    .hotspot { background: rgba(255,255,255,0.9); border-radius: 12px; padding: 12px; font-size: 14px; color: #000; max-width: 240px; display: none; }
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .hotspot {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      color: #000;
+      max-width: 240px;
+      display: none;
+    }
   </style>
 </head>
 <body>
+
   <model-viewer id="heartViewer"
-                src="Heart.glb"
-                ar
-                ar-modes="scene-viewer quick-look webxr"
-                camera-controls auto-rotate shadow-intensity="1" environment-image="neutral">
-    <button class="hotspot" slot="hotspot-info" data-position="0.1m 0.2m 0.0m" data-normal="0m 1m 0m" id="infoBox">
-      <b>Parts of Human Heart:</b><br>• Aorta – oxygen-rich blood to body<br>• Pulmonary arteries – blood to lungs<br>• Coronary arteries – supply heart<br>• Superior vena cava – upper body return<br>• Inferior vena cava – lower body return
+    src="Heart.glb"
+    ar
+    ar-modes="scene-viewer webxr"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1"
+    exposure="1.2"
+    environment-image="https://modelviewer.dev/shared-assets/environments/neutral.hdr"
+    poster="https://modelviewer.dev/shared-assets/models/heart.png"
+    >
+
+    <button class="hotspot" 
+            slot="hotspot-info" 
+            data-position="0.1m 0.2m 0.0m" 
+            data-normal="0m 1m 0m" 
+            id="infoBox">
+      <b>Parts of Human Heart:</b><br>
+      • Aorta – carries oxygen-rich blood <br>
+      • Pulmonary arteries – carry blood to lungs <br>
+      • Coronary arteries – supply blood to heart <br>
+      • Superior vena cava – from upper body <br>
+      • Inferior vena cava – from lower body
     </button>
   </model-viewer>
 
@@ -25,19 +62,15 @@
     const viewer = document.getElementById('heartViewer');
     const infoBox = document.getElementById('infoBox');
 
-    viewer.addEventListener('load', () => {
-      if (viewer.model?.materials) {
-        for (const mat of viewer.model.materials) {
-          mat.occlusionTexture?.setTexture(null);
-        }
-      }
-    });
-
-    viewer.addEventListener('ar-status', e => {
-      if (e.detail.status === 'session-started') {
-        viewer.addEventListener('click', () => infoBox.style.display = 'block');
+    // Show info when tapping during AR
+    viewer.addEventListener('ar-status', (event) => {
+      if (event.detail.status === 'session-started') {
+        viewer.addEventListener('click', () => {
+          infoBox.style.display = "block";
+        });
       }
     });
   </script>
+
 </body>
 </html>
