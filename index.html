@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Interactive AR Heart (A‑Frame + AR.js)</title>
+  <!-- A-Frame core -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <!-- AR.js for A-Frame (marker-based AR, no ARCore required) -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+  <style>
+    html, body { margin:0; padding:0; overflow:hidden; background:#000; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, 'Helvetica Neue', Arial, sans-serif; }
+    #overlay {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      padding: 12px 16px; background: rgba(10,10,10,0.65); color: #fff;
+      display: none; backdrop-filter: blur(6px);
+    }
+    #overlay .title { font-weight: 700; font-size: 16px; margin-bottom: 6px; }
+    #overlay .desc  { font-size: 14px; line-height: 1.35; }
+    #overlay .close { position: absolute; right: 10px; top: 8px; background: rgba(255,255,255,0.2); border: 0; color: #fff; padding: 6px 10px; border-radius: 8px; }
+    #hint {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      padding: 8px 12px; color:#fff; background: rgba(0,0,0,0.55); border-radius: 10px; font-size: 13px;
+    }
+    #marker-note {
+      position: fixed; top: 46px; left: 50%; transform: translateX(-50%);
+      padding: 6px 10px; color:#fff; background: rgba(0,0,0,0.35); border-radius: 10px; font-size: 12px;
+    }
+    .credit {
+      position: fixed; right: 8px; bottom: 8px; color: #bbb; font-size: 11px; background: rgba(0,0,0,0.35); padding: 4px 6px; border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="hint">Point your camera at the <b>HIRO</b> marker. Tap parts of the heart to learn more.</div>
+  <div id="marker-note">Search the web for "AR.js hiro marker" and open/print the black-square marker.</div>
+  <div id="overlay">
+    <button class="close" onclick="hideInfo()">Close</button>
+    <div class="title" id="infoTitle">Part</div>
+    <div class="desc" id="infoDesc">Description...</div>
+  </div>
+  <div class="credit">Interactive AR Heart</div>
+
+  <!-- AR scene -->
+  <a-scene
+    renderer="colorManagement: true; physicallyCorrectLights: true"
+    embedded
+    vr-mode-ui="enabled: false"
+    arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false"
+  >
+    <a-assets>
+      <a-asset-item id="heartModel" src="./Heart.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- A mouse-based cursor + raycaster so taps/clicks can select hotspots -->
+    <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: .hotspot"></a-entity>
+
+    <!-- Marker target (HIRO). When the marker is in view, your heart appears anchored on it. -->
+    <a-marker type="hiro">
+      <!-- Group containing the 3D heart -->
+      <a-entity id="heartRoot" position="0 0 0" rotation="0 0 0" scale="0.4 0.4 0.4" gltf-model="#heartModel">
+        <!-- Invisible hotspot colliders: adjust positions to match your mesh -->
+        <!-- Aorta -->
+        <a-entity class="hotspot" data-id="aorta"
+                  geometry="primitive: sphere; radius: 0.18"
+                  position="0.25 0.80 0.05"
+                  material="opacity: 0.0; transparent: true"></a-entity>
+
+        <!-- Right Atrium -->
+        <a-entity class="hotspot" data-id="right-atrium"
+                  geometry="primitive: sphere; radius: 0.20"
+                  position="-0.35 0.30 0.20"
+                  material="opacity: 0.0; transparent: true"></a-entity>
+
+        <!-- Left Ventricle -->
+        <a-entity class="hotspot" data-id="left-ventricle"
+                  geometry="primitive: sphere; radius: 0.25"
+                  position="0.25 -0.20 0.15"
+                  material="opacity: 0.0; transparent: true"></a-entity>
+      </a-entity>
+
+      <!-- Simple lighting to help the model read better -->
+      <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+      <a-entity light="type: directional; intensity: 0.9" position="0 2 1"></a-entity>
+    </a-marker>
+
+    <!-- Required camera -->
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    // Text for each part
+    const INFO = {
+      'aorta': {
+        title: 'Aorta',
+        desc: 'Main artery that carries oxygen-rich blood from the left ventricle to the body.'
+      },
+      'right-atrium': {
+        title: 'Right Atrium',
+        desc: 'Receives deoxygenated blood from the body via the vena cavae and passes it to the right ventricle.'
+      },
+      'left-ventricle': {
+        title: 'Left Ventricle',
+        desc: 'Pumps oxygenated blood into the aorta with high pressure to supply the body.'
+      }
+    };
+
+    const overlay = document.getElementById('overlay');
+    const titleEl = document.getElementById('infoTitle');
+    const descEl  = document.getElementById('infoDesc');
+
+    function showInfo(id) {
+      const item = INFO[id];
+      if (!item) return;
+      titleEl.textContent = item.title;
+      descEl.textContent  = item.desc;
+      overlay.style.display = 'block';
+    }
+    function hideInfo() { overlay.style.display = 'none'; }
+
+    // Attach click handlers to hotspots once scene is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      const scene = document.querySelector('a-scene');
+      scene.addEventListener('loaded', () => {
+        document.querySelectorAll('.hotspot').forEach(h => {
+          h.addEventListener('click', (e) => {
+            const id = h.getAttribute('data-id');
+            showInfo(id);
+            // prevent event bubbling to scene
+            e.stopPropagation();
+          });
+        });
+        // click on empty space hides the panel
+        scene.addEventListener('click', () => hideInfo());
+      });
+    });
+  </script>
+</body>
+</html>
