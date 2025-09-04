@@ -6,13 +6,13 @@
   <title>Heart AR</title>
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    body{margin:0;background:#f3f4f6;font-family:system-ui,-apple-system,Segoe UI,Roboto}
-    .card{
+    body {margin:0;background:#f3f4f6;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    .card {
       max-width:720px;margin:24px auto;padding:16px;
       background:#fff;border-radius:18px;
       box-shadow:0 10px 30px rgba(0,0,0,.12);
     }
-    model-viewer{
+    model-viewer {
       width:100%;height:70vh;border-radius:14px;background:#fff;
     }
   </style>
@@ -20,24 +20,22 @@
 <body>
   <div class="card">
     <model-viewer
-      src="heart.glb"                <!-- your .glb/.gltf -->
-      ios-src="heart.usdz"           <!-- required for AR on iPhone/iPad -->
-      ar                            <!-- show AR button if supported -->
+      src="heart.glb"                <!-- your 3D heart file (.glb/.gltf) -->
+      ios-src="heart.usdz"           <!-- required for iOS AR -->
+      ar                            <!-- enable AR button -->
       ar-modes="scene-viewer webxr quick-look"
-      ar-scale="fixed"               <!-- keep real-world scale -->
-      ar-placement="floor"           <!-- don’t float in AR -->
+      ar-scale="fixed"
+      ar-placement="floor"
       camera-controls
-      touch-action="pan-y"
+      auto-rotate
       shadow-intensity="1"
       shadow-softness="0.8"
       exposure="1"
       environment-image="neutral"
-      bounds="tight"                 <!-- frames model nicely -->
-      camera-orbit="0deg 70deg auto" <!-- good starting view -->
-      auto-rotate
-      interaction-prompt="auto"
-      poster="poster.png"            <!-- optional loading poster -->
-      alt="3D human heart">
+      bounds="tight"
+      camera-orbit="0deg 70deg auto"
+      alt="3D human heart"
+      poster="poster.png">
     </model-viewer>
   </div>
 </body>
